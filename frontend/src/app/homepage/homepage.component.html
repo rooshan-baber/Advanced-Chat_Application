@@ -1,0 +1,65 @@
+<nav class="navbar bg-dark">
+  <div style="color: white" class="container-fluid">
+    <a class="navbar-brand" routerLinkActive="active" routerLink="/homepage" style="color: rgb(255, 255, 255); cursor: pointer">ChatApp</a>
+    <span style="color: rgb(217, 193, 34)">Logged in as {{ user }}</span>
+    <div>
+      <a style="color: white; cursor: pointer" class="navbar-brand" (click)="logout()">Logout</a>
+    </div>
+  </div>
+</nav>
+
+<div class="users-container">
+  <div class="all-users" *ngFor="let chat of pChats" (click)="newchat(chat)">
+    <div class="single-user mx-2">
+      {{ chat.username }}
+      <span class="user-online" *ngIf="isUserOnline(chat._id)"></span>
+    </div>
+  </div>
+</div>
+
+<div class="container d-block mt-4 main-container">
+  <div class="row">
+    <div class="col-lg-3">
+      <div class="messages-box p-3" *ngIf="userChats && userChats.length > 0">
+        <div>
+          <div class="chat-div" *ngFor="let user of recipientUser" (click)="updateChat(user)">
+            <div class="user-card p-2 align-items-center justify-content-between">
+              <div class="d-flex">
+                <div class="d-flex align-items-center me-3">
+                  <img src="assets/undraw_pic_profile_re_7g2h.svg" alt="profile pic" height="35px" />
+                </div>
+                <div class="text-content">
+                  <div class="name">{{ user.username }}</div>
+                  <!-- <div>{{ msgs[msgs.length - 1]?.text }}</div> -->
+                  <div class="date">{{ formatMessageDate(user.username.createdAt) }}</div>
+                </div>
+                <span class="user-online ms-5 mt-1" *ngIf="isUserOnline(user._id)"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-9">
+      <div class="chat-box ms-5" *ngIf="upChat">
+        <div class="chat-header">
+          <strong>{{ chatusername }}</strong>
+        </div>
+        <div class="messages" *ngIf="msgs.length === 0" style="display: flex; width: 100%; justify-content: center;">
+          <p><strong>No Messages yet</strong></p>
+        </div>
+        <div class="messages" *ngIf="msgs.length > 0">
+          <span *ngFor="let msg of msgs" [ngClass]="msg.senderId === userId ? 'self' : 'message'">
+            {{ msg.text }}
+            <span class="message-footer">{{ formatMessageDate(msg.createdAt) }}</span>
+          </span>
+        </div>
+      </div>
+      <div class="chat-input" *ngIf="upChat">
+        <input type="text" class="input" placeholder="type a message" [(ngModel)]="text">
+        <button class="send-btn" (click)="sendmsg()"><img src="assets/send-fill.svg" alt="send"></button>
+      </div>
+      <p *ngIf="!upChat" style="display: flex; width: 100%; justify-content: center;"><strong>No Conversation selected yet</strong></p>
+    </div>
+  </div>
+</div>

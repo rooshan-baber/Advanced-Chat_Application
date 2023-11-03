@@ -1,0 +1,15 @@
+<form [formGroup]="loginform" (ngSubmit)="LOGIN()">
+  <div class="card">
+      <div class="card-body">
+        <h3 class="card-title mb-4">LOGIN</h3>
+        <div class="input-group mb-4">
+          <input type="text" class="form-control" formControlName="email" name="email" placeholder="Email">
+        </div>
+        <div class="input-group mb-4">
+          <input type="password" class="form-control" formControlName="password" name="password" placeholder="Password">
+        </div>
+        <p class="links" routerLinkActive="active" routerLink="/signup" style="cursor: pointer;">Create a new account</p>
+        <button class="btn btn-dark">Login</button>
+      </div>
+    </div>
+  </form>

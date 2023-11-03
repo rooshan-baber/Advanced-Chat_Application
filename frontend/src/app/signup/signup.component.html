@@ -1,0 +1,18 @@
+<form [formGroup]="signupform" (ngSubmit)="signup()">
+<div class="card">
+    <div class="card-body">
+      <h3 class="card-title mb-4">SIGNUP</h3>
+      <div class="input-group mb-4">
+        <input type="text" class="form-control" formControlName="username" name="username" placeholder="Username">
+      </div>
+      <div class="input-group mb-4">
+        <input type="text" class="form-control" formControlName="email" name="email" placeholder="Email">
+      </div>
+      <div class="input-group mb-4">
+        <input type="password" class="form-control" formControlName="password" name="password" placeholder="Password">
+      </div>
+      <p class="links" routerLinkActive="active" routerLink="/login" style="cursor: pointer;">Already have an account</p>
+      <button class="btn btn-dark">Signup</button>
+    </div>
+  </div>
+</form>
