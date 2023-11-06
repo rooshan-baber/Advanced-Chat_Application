@@ -123,11 +123,14 @@ body {
   display: flex;
   flex-direction: column;
   color: white;
-  width: fit-content;
+  width: 300px;
   background: #282828;
   padding: 0.75rem;
   border-radius: 5px;
   margin-bottom: 10px;
+  overflow-wrap: break-word;
+  text-align: justify;
+  text-justify: inter-word;
 }
 
 .self {
@@ -136,10 +139,10 @@ body {
   color: white;
   padding: 0.75rem;
   border-radius: 5px;
-  width: 200px;
+  width: 300px;
   background: #00bd9b;
   position: relative;
-  left: 47.3vw;
+  left: 39vw;
   margin-bottom: 5px;
   overflow-wrap: break-word;
   text-align: justify;

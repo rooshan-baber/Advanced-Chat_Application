@@ -24,6 +24,7 @@ export class HomepageComponent implements OnInit {
   text: any;
   chatusername: any;
   chatdetails: any;
+  notifications: any;
 
   constructor(private chatappservice: ChatappService, private router: Router) {
     this.messageSubscription = this.chatappservice.listenForMessages().subscribe((message) => {
@@ -42,6 +43,12 @@ export class HomepageComponent implements OnInit {
       this.showchats();
       this.chatappservice.connectUser(this.userId);
     }
+
+    if (this.upChat) {
+      this.updateChat(this.upChat);
+      console.log("upChat",this.upChat);
+    }
+    
   }
 
   ngAfterViewInit() {
@@ -170,8 +177,11 @@ export class HomepageComponent implements OnInit {
   }
 
   updateChat(user: any) {
+    debugger
     this.chatdetails = user;
+    console.log("Chatuser: ",this.chatdetails);
     this.chatusername = this.chatdetails.username;
+    this.chatappservice.updateChatIdd(this.chatdetails._id);
     debugger;
     // Find a chat where both user._id and this.userId are in the members array
     const matchedUser = this.userChats.find((chat: any) =>
@@ -208,7 +218,7 @@ export class HomepageComponent implements OnInit {
       senderId: this.userId,
       text: this.text,
     };
-    
+    console.log("USERID: ",this.userId);
     this.chatappservice.emitMessage(messageData,this.chatdetails._id);
     this.chatappservice.createMsg(messageData).subscribe((data)=>{
       console.log('Message sent:', data);

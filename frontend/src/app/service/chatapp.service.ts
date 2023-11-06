@@ -8,6 +8,8 @@ import { io, Socket } from 'socket.io-client';
 export class ChatappService {
   private socket!: Socket;
   private messageSubject = new Subject<any>();
+  noti: any;
+  chatIdd: any;
   constructor(private http: HttpClient,) {
     
   }
@@ -17,12 +19,12 @@ export class ChatappService {
   //Create User
   saveUser(data: any): Observable<any> {
     debugger;
-    return this.http.post<any>('10.250.10.197:4000/signup', data);
+    return this.http.post<any>('http://10.250.10.197:4000/signup', data);
   }
   //Check User on Login
   loginUser(data: any): Observable<any> {
     debugger;
-    return this.http.post('10.250.10.197:4000/login', data).pipe(
+    return this.http.post('http://10.250.10.197:4000/login', data).pipe(
       map((response: any) => {
         if (response && response.token) {
           this.authToken = response.token;
@@ -35,43 +37,43 @@ export class ChatappService {
   //Find User By Id
   findUser(userId:string): Observable<any> {
     debugger
-    return this.http.get<any>(`10.250.10.197:4000/findUser/${userId}`);
+    return this.http.get<any>(`http://10.250.10.197:4000/findUser/${userId}`);
   }
 
   //Find All Users
   findAllUsers():Observable<any>{
     debugger
-    return this.http.get<any>("10.250.10.197:4000/allUsers")
+    return this.http.get<any>("http://10.250.10.197:4000/allUsers")
   }
   
   //Create Chat
   createChat(data: any): Observable<any> {
     debugger;
-    return this.http.post<any>('10.250.10.197:4000/newchat', data);
+    return this.http.post<any>('http://10.250.10.197:4000/newchat', data);
   }
 
   //Get Chats of User
   getUserChat(userId:string): Observable<any> {
     debugger;
-    return this.http.get<any>(`10.250.10.197:4000/finduserchat/${userId}`);
+    return this.http.get<any>(`http://10.250.10.197:4000/finduserchat/${userId}`);
   } 
 
   //Get Chats
   getChat(firstId:string,secondId:string): Observable<any> {
     debugger;
-    return this.http.get<any>(`10.250.10.197:4000/findchat/${firstId}/${secondId}`);
+    return this.http.get<any>(`http://10.250.10.197:4000/findchat/${firstId}/${secondId}`);
   }
 
   //Create message
   createMsg(data: any): Observable<any> {
     debugger;
-    return this.http.post<any>('10.250.10.197:4000/newmsg', data);
+    return this.http.post<any>('http://10.250.10.197:4000/newmsg', data);
   }
 
   //Get Message
   getUserMsg(chatId:any): Observable<any> {
     debugger;
-    return this.http.get<any>(`10.250.10.197:4000/getmsg/${chatId}`);
+    return this.http.get<any>(`http://10.250.10.197:4000/getmsg/${chatId}`);
   }
   // Function to set the token
   setToken(token: string) {
@@ -100,6 +102,9 @@ export class ChatappService {
     return !!this.authToken;
   }
 
+  updateChatIdd(chatId: string) {
+    this.chatIdd = chatId;
+  }
   //a new socket connection
   connectUser(userId:string){
     debugger
@@ -111,8 +116,18 @@ export class ChatappService {
     }));
 
     this.socket.on('getMessage', (message) => {
-      // Notify the component that a new message has been received
       this.messageSubject.next(message);
+    });
+
+    this.socket.on('getNotification', (res) => {
+      if(res.senderId === this.chatIdd){
+        res.isRead = true;
+          this.noti = res;
+          console.log("open Notif:",this.noti);
+      }else{
+        this.noti = res;
+        console.log("close Notif:",this.noti);
+      }
     });
   }
 

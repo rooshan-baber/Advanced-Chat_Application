@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const { Server } = require("socket.io");
 const dotenv = require("dotenv");
-const routes = require("./routes/routes");
+const routes = require("./api/routes");
 const connectDB = require("./database/config");
 const colors = require("colors");
 const PORT = 4000;
@@ -12,7 +12,7 @@ connectDB();
 
 // Allow requests from frontend's domain
 const corsOptions = {
-  origin: "10.250.10.197:8000", // Replace with your frontend domain
+  origin: "*", // Replace with your frontend domain
   methods: ["GET", "POST"], // Allow GET and POST methods
 };
 app.use(cors(corsOptions));
@@ -51,6 +51,11 @@ io.on("connection", (socket) => {
     const user = onlineUsers.find((user) => user.userId === recipientId);
     if (user) {
       io.to(user.socketId).emit("getMessage", message);
+      io.to(user.socketId).emit("getNotification",{
+        senderId: message.senderId,
+        isRead: false,
+        date:new Date(),
+      });
     }
   });
 
