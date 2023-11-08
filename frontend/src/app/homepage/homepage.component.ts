@@ -236,6 +236,7 @@ export class HomepageComponent implements OnInit {
     this.chatappservice.createMsg(messageData).subscribe((data)=>{
       console.log('Message sent:', data);
       this.msgs.push(data);
+      this.updateLatestMessagesForRecipientUsers();
       this.text = '';
       this.scrollToBottom();
     })
