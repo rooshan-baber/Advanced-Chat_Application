@@ -25,13 +25,20 @@ export class HomepageComponent implements OnInit {
   chatusername: any;
   chatdetails: any;
   notifications: any;
-
-  constructor(private chatappservice: ChatappService, private router: Router) {
+  showNotificationBox: boolean = false;
+  allUsers: any;
+  userNewmsg: any[] =[];
+  latestmsg: any;
+  constructor(public chatappservice: ChatappService, private router: Router) {
     this.messageSubscription = this.chatappservice.listenForMessages().subscribe((message) => {
-      this.handleReceivedMessage(message);
+      if(message){
+        this.handleReceivedMessage(message);
+      }
     });
   }
 
+  
+  
   ngOnInit() {
     this.userData = localStorage.getItem('user');
 
@@ -48,7 +55,6 @@ export class HomepageComponent implements OnInit {
       this.updateChat(this.upChat);
       console.log("upChat",this.upChat);
     }
-    
   }
 
   ngAfterViewInit() {
@@ -102,6 +108,7 @@ export class HomepageComponent implements OnInit {
                 .subscribe((data) => {
                   this.recipientUser.push(data);
                   if (this.recipientUser.length == this.userChats.length) {
+                    this.updateLatestMessagesForRecipientUsers();
                     console.log('recipient userssss: ', this.recipientUser);
                     // Create a new array for usernames
                     this.usernames = this.recipientUser.map(
@@ -109,7 +116,7 @@ export class HomepageComponent implements OnInit {
                     );
                     console.log('Usernames: ', this.usernames);
                     return;
-                  } // Push data for the current recipient
+                  }
                 });
             }
           }
@@ -140,6 +147,8 @@ export class HomepageComponent implements OnInit {
     this.pChats = await this.chatappservice.findAllUsers().toPromise()
       .then(data => {
         // Filter users who are not in userChatMembers
+        this.allUsers = data;
+        console.log("ALL users",this.allUsers)
         return data.filter((chat: any) => {
           return chat._id !== this.userId && !userChatMembers.includes(chat._id);
         });
@@ -199,6 +208,7 @@ export class HomepageComponent implements OnInit {
     } else {
       console.log('No chat found for the selected user.');
     }
+    this.markNotificationAsRead(user);
   }
   
   
@@ -213,9 +223,12 @@ export class HomepageComponent implements OnInit {
       console.error('Chat ID or User ID is not available.');
       return;
     }
+    const user = this.allUsers.find((user:any) => user._id === this.userId);
+    const username = user.username;
     const messageData = {
       chatId: this.chatId,
       senderId: this.userId,
+      senderName: username,
       text: this.text,
     };
     console.log("USERID: ",this.userId);
@@ -246,5 +259,64 @@ export class HomepageComponent implements OnInit {
       const chatBox = document.querySelector('.messages');
       chatBox?.scrollTo(0, chatBox.scrollHeight);
     }, 0);
-  }      
+  }
+
+  toggleNotificationBox() {
+    this.showNotificationBox = !this.showNotificationBox;
+  }
+
+  markNotificationAsRead(notification:any) {
+    debugger
+    if(notification.email){
+      this.chatappservice.noti = this.chatappservice.noti.map((n: any) => {
+        if (n.senderId === notification._id) {
+          n.isRead = true;
+        }
+        return n;
+      });
+      this.chatappservice.noti = this.chatappservice.noti.filter((n: any) => !n.isRead);
+    }
+    else{
+    notification.isRead = true;
+    this.chatappservice.noti.unshift(notification);
+    this.chatappservice.unNoti = this.chatappservice.unNoti.filter((n: any) => n !== notification);
+    const user = this.recipientUser.find((user: any) => user._id === notification.senderId);
+    if (user) {
+      this.updateChat(user);
+      this.chatappservice.noti = this.chatappservice.noti.filter((n: any) => n.senderId !== notification.senderId);
+    }else{
+      const newuser = this.allUsers.find((user: any) => user._id === notification.senderId);
+      this.newchat(newuser)
+    }
+    this.showNotificationBox = !this.showNotificationBox;
+  }
+  }
+
+  updateLatestMessagesForRecipientUsers() {
+    debugger
+    for (const user of this.recipientUser) {
+      const matchedUser = this.userChats.find((chat: any) =>
+        chat.members.includes(user._id) && chat.members.includes(this.userId)
+      );
+  
+      if (matchedUser) {
+        this.chatappservice.getUserMsg(matchedUser._id).subscribe((data) => {
+          const lastmsg = data[data.length - 1];
+          user.latestmsg = lastmsg.text;
+          
+          user.latestmsgtime = this.formatMessageDate(lastmsg.createdAt);
+        });
+      }
+    }
+  }
+  
+  // unreadUserNotifications(){
+  //   debugger
+  //   this.userNewmsg = this.chatappservice.unNoti.filter((notification: any) => {
+  //     const recipientUser = this.recipientUser.find(
+  //       (user: any) => user._id === notification.senderId
+  //     );
+  //     return recipientUser !== undefined;
+  //   });
+  // }
 }

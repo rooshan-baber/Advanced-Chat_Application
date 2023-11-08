@@ -8,8 +8,10 @@ import { io, Socket } from 'socket.io-client';
 export class ChatappService {
   private socket!: Socket;
   private messageSubject = new Subject<any>();
-  noti: any;
+  noti: any[] = [];
   chatIdd: any;
+  unNoti: any[] = [];
+  reNoti: any[] = [];
   constructor(private http: HttpClient,) {
     
   }
@@ -121,13 +123,19 @@ export class ChatappService {
 
     this.socket.on('getNotification', (res) => {
       if(res.senderId === this.chatIdd){
-        res.isRead = true;
-          this.noti = res;
-          console.log("open Notif:",this.noti);
+          res.isRead = true;
+          this.noti.push(res);
+          this.noti.reverse();
+          console.log("Notif:",this.noti);
       }else{
-        this.noti = res;
-        console.log("close Notif:",this.noti);
+        this.noti.push(res);
+        this.noti.reverse();
+        console.log("Notif:",this.noti);
       }
+      this.unNoti = this.noti.filter((notification) => !notification.isRead);
+      console.log("Unread Notifications:", this.unNoti);
+      this.reNoti = this.noti.filter((notification) => notification.isRead);
+      console.log("read Notifications:", this.reNoti);
     });
   }
 

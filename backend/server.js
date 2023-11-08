@@ -53,6 +53,7 @@ io.on("connection", (socket) => {
       io.to(user.socketId).emit("getMessage", message);
       io.to(user.socketId).emit("getNotification",{
         senderId: message.senderId,
+        senderName: message.senderName,
         isRead: false,
         date:new Date(),
       });
