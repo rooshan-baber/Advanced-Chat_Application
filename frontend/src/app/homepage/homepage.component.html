@@ -150,6 +150,7 @@
           class="input"
           placeholder="type a message"
           [(ngModel)]="text"
+          (keyup.enter)="sendmsg()"
         />
         <button class="send-btn" (click)="sendmsg()" [disabled]="!text">
           <img src="assets/send-fill.svg" alt="send" />

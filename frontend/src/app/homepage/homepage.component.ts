@@ -236,8 +236,8 @@ export class HomepageComponent implements OnInit {
   sendmsg(){
     debugger
 
-    if (!this.chatId || !this.userId) {
-      console.error('Chat ID or User ID is not available.');
+    if (!this.chatId || !this.userId || !this.text) {
+      console.error('Chat ID or User ID or message text is not available.');
       return;
     }
     const user = this.allUsers.find((user:any) => user._id === this.userId);
