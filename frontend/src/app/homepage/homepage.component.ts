@@ -319,9 +319,8 @@ export class HomepageComponent implements OnInit {
       if (matchedUser) {
         this.chatappservice.getUserMsg(matchedUser._id).subscribe((data) => {
           const lastmsg = data[data.length - 1];
-          user.latestmsg = lastmsg.text;
-          
-          user.latestmsgtime = this.formatMessageDate(lastmsg.createdAt);
+          user.latestmsg = lastmsg?.text || '';
+          user.latestmsgtime = this.formatMessageDate(lastmsg?.createdAt);
         });
       }
     }

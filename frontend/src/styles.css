@@ -109,7 +109,7 @@ body {
 
 /* Messages */
 .messages {
-  height: 62vh;
+  height: 61vh;
   overflow-y: auto;
   overflow-x: hidden;
   padding: 0 2rem;
