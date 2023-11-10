@@ -29,6 +29,7 @@ export class HomepageComponent implements OnInit {
   allUsers: any;
   userNewmsg: any[] =[];
   latestmsg: any;
+  creatingChat: boolean = false;
   constructor(public chatappservice: ChatappService, private router: Router) {
     this.messageSubscription = this.chatappservice.listenForMessages().subscribe((message) => {
       if(message){
@@ -162,7 +163,12 @@ export class HomepageComponent implements OnInit {
   }
   
   newchat(singleUser: any) {
-    debugger;
+    if (this.creatingChat) {
+      return;
+    }
+  
+    this.creatingChat = true;
+  
     // Check if the user is already in userChats
     const alreadyExists = this.userChats.some((chat) =>
       chat.members.includes(singleUser._id)
@@ -173,17 +179,28 @@ export class HomepageComponent implements OnInit {
         members: [this.userId, singleUser._id],
       };
   
-      this.chatappservice.createChat(chatData).subscribe((response) => {
-        console.log('New Chat Created:', response);
+      this.chatappservice.createChat(chatData).subscribe(
+        (response) => {
+          console.log('New Chat Created:', response);
   
-        // Add the newly created chat to the userChats
-        this.showchats();
-        this.pChats = this.pChats.filter((chat: any) => chat._id !== singleUser._id);
-      });
+          // Add the newly created chat to the userChats
+          this.showchats();
+          this.pChats = this.pChats.filter((chat: any) => chat._id !== singleUser._id);
+        },
+        (error) => {
+          console.error('Error creating chat:', error);
+        },
+        () => {
+          // Reset creatingChat after the API call is complete
+          this.creatingChat = false;
+        }
+      );
     } else {
       console.log('Chat with this user already exists.');
+      this.creatingChat = false; // Reset creatingChat if the chat already exists
     }
   }
+  
 
   updateChat(user: any) {
     debugger
@@ -248,7 +265,6 @@ export class HomepageComponent implements OnInit {
     if (message.chatId === this.chatId) {
       // Add the received message to the chat box
       this.msgs.push(message);
-      this.text = '';
       this.scrollToBottom();
     }
   }
