@@ -25,6 +25,7 @@ export class LoginComponent {
           if (token) {
             localStorage.setItem('Token', token);
             localStorage.setItem('user',JSON.stringify(response));
+            debugger
             this.router.navigate(['/homepage']);
           } else {
             console.warn('Token not found in the response.');

@@ -1,59 +1,44 @@
 const express = require("express");
-const cors = require("cors");
-const bodyParser = require("body-parser");
+const router = express.Router();
 const jwt = require("jsonwebtoken");
+const CryptoJS = require('crypto-js');
 const asyncHandler = require("express-async-handler");
 const User = require("../database/models/User");
 const Chat = require("../database/models/Chat");
 const Message = require("../database/models/Message");
 const SK = "qwertyuiopasdfghjklzxcvbnmqwerty";
-const app = express();
+const secretKey = '^!!)!)^&)^(#(';
 
-//MIDDLEWARES
-app.use(express.json());
-app.use(
-  cors({
-    origin: "*",
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true,
-  })
-);
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
-const protect = asyncHandler(async (req, res, next) => {
-  let token;
-
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer")
-  ) {
-    try {
-      token = req.headers.authorization.split(" ")[1];
-
-      console.log("Received token:", token);
-      // Decodes token id
-      const decoded = jwt.verify(token, SK);
-      console.log(decoded);
-
-      req.user = await User.findById(decoded.id).select("-password");
-
-      next(); // Call next to continue the middleware chain
-    } catch (error) {
-      res.status(401);
-      throw new Error("Not authorized, token failed");
+// Middleware for decrypting request body
+const decryptBody = (req, res, next) => {
+  try {
+    if (req.body && req.body.encryption) {
+      const decryptedText = CryptoJS.AES.decrypt(req.body.encryption, secretKey).toString(CryptoJS.enc.Utf8);
+      req.body = JSON.parse(decryptedText);
     }
+    next();
+  } catch (error) {
+    console.error('Error decrypting request body:', error);
+    res.status(500).send('Internal Server Error');
   }
+};
+// Middleware for encrypting response body
+const encryptResponse = (req, res, next) => {
+  const originalSend = res.send;
 
-  if (!token) {
-    res.status(401);
-    throw new Error("Not authorized, no token");
-  }
-});
+  res.send = function (body) {
+    const encryptedBody = CryptoJS.AES.encrypt(JSON.stringify(body), secretKey).toString();
+    originalSend.call(this, encryptedBody);
+  };
 
-//ROUTES
+  next();
+};
+
+router.use(decryptBody);
+router.use(encryptResponse);
 
 // CREATE USER (SIGNUP)
-app.post("/signup", async (req, res) => {
+router.post("/signup", async (req, res) => {
   try {
     const { username, email, password } = req.body;
     if (!username || !email || !password) {
@@ -84,8 +69,8 @@ app.post("/signup", async (req, res) => {
   }
 });
 
-//FIND USER (LOGIN)
-app.post("/login", async (req, res) => {
+// FIND USER (LOGIN)
+router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
@@ -100,6 +85,7 @@ app.post("/login", async (req, res) => {
       console.log("Incorrect email or password");
       res.status(401).send("Incorrect email or password");
       res.redirect("/login");
+      return;
     }
   } catch (error) {
     console.error("Error Finding User: ", error);
@@ -108,29 +94,29 @@ app.post("/login", async (req, res) => {
   }
 });
 
-//Find User By ID
-app.get("/findUser/:userId", async (req, res) => {
+// Find User By ID
+router.get("/findUser/:userId", async (req, res) => {
   const userId = req.params.userId;
   try {
     const user = await User.findById(userId);
-  res.status(200).send(user)
+    res.status(200).send(user);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 });
 
-//Find All Users
-app.get("/allUsers", async (req, res) => {
+// Find All Users
+router.get("/allUsers", async (req, res) => {
   try {
     const user = await User.find();
-  res.status(200).send(user)
+    res.status(200).send(user);
   } catch (error) {
     res.status(500).json({ error: error.message });    
   }
 });
 
-//Create New Chat
-app.post('/newchat', async (req, res) => {
+// Create New Chat
+router.post('/newchat', async (req, res) => {
   try {
     const { members } = req.body;
     const firstId = members[0];
@@ -151,9 +137,8 @@ app.post('/newchat', async (req, res) => {
   }
 });
 
-
-//Find Chat by ID
-app.get('/finduserchat/:userId',async (req,res)=>{
+// Find Chat by ID
+router.get('/finduserchat/:userId', async (req, res) => {
   try {
     const userId = req.params.userId;
     const chat = await Chat.find({
@@ -165,8 +150,8 @@ app.get('/finduserchat/:userId',async (req,res)=>{
   }
 });
 
-//Find Chat
-app.get('/findchat/:firstId/:secondId',async (req,res)=>{
+// Find Chat
+router.get('/findchat/:firstId/:secondId', async (req, res) => {
   try {
     const {firstId, secondId} = req.params;
     const chat = await Chat.find({
@@ -178,8 +163,8 @@ app.get('/findchat/:firstId/:secondId',async (req,res)=>{
   }
 });
 
-//Create Message
-app.post('/newmsg',async (req,res)=>{
+// Create Message
+router.post('/newmsg', async (req, res) => {
   try {
     const {chatId, senderId, text} = req.body;
     const newmsg = await Message.create({
@@ -191,8 +176,8 @@ app.post('/newmsg',async (req,res)=>{
   }
 });
 
-//Get Message
-app.get('/getmsg/:chatId', async (req,res)=>{
+// Get Message
+router.get('/getmsg/:chatId', async (req, res) => {
   try {
     const {chatId} = req.params;
     const msgs = await Message.find({chatId});
@@ -200,6 +185,36 @@ app.get('/getmsg/:chatId', async (req,res)=>{
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-})
+});
 
-module.exports = app;
+module.exports = router;
+
+// const protect = asyncHandler(async (req, res, next) => {
+//   let token;
+
+//   if (
+//     req.headers.authorization &&
+//     req.headers.authorization.startsWith("Bearer")
+//   ) {
+//     try {
+//       token = req.headers.authorization.split(" ")[1];
+
+//       console.log("Received token:", token);
+//       // Decodes token id
+//       const decoded = jwt.verify(token, SK);
+//       console.log(decoded);
+
+//       req.user = await User.findById(decoded.id).select("-password");
+
+//       next(); // Call next to continue the middleware chain
+//     } catch (error) {
+//       res.status(401);
+//       throw new Error("Not authorized, token failed");
+//     }
+//   }
+
+//   if (!token) {
+//     res.status(401);
+//     throw new Error("Not authorized, no token");
+//   }
+// });

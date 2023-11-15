@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const bodyParser = require("body-parser");
 const { Server } = require("socket.io");
 const dotenv = require("dotenv");
 const routes = require("./api/routes");
@@ -16,9 +17,9 @@ const corsOptions = {
   methods: ["GET", "POST"], // Allow GET and POST methods
 };
 app.use(cors(corsOptions));
-
-app.use("/", routes);
-app.use(express.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+app.use(routes);
 
 const io = new Server({
   cors: {
@@ -32,8 +33,9 @@ io.on("connection", (socket) => {
   const updateOnlineUsers = async () => {
     io.emit("getOnlineUsers", onlineUsers);
   };
-  //listen to a connection
-  socket.on("addNewUser",async (userId) => {
+
+  // listen to a connection
+  socket.on("addNewUser", async (userId) => {
     const existingUser = onlineUsers.find((user) => user.userId === userId);
     
     if (existingUser) {
@@ -43,7 +45,7 @@ io.on("connection", (socket) => {
       // If the user is not in the array, add them with the new socket ID
       onlineUsers.push({ userId, socketId: socket.id });
     }
-    console.log("onlineUsers: ",onlineUsers);
+    console.log("onlineUsers: ", onlineUsers);
     await updateOnlineUsers();
   });
 
@@ -59,7 +61,6 @@ io.on("connection", (socket) => {
       });
     }
   });
-
 
   // Handle disconnection
   socket.on("dis", () => {

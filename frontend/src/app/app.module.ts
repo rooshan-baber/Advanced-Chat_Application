@@ -8,10 +8,10 @@ import { SignupComponent } from './signup/signup.component';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { ChatappService } from './service/chatapp.service';
 import { AuthtokenInterceptor } from './authtoken/authtoken.interceptor';
+import { EncryptionInterceptor } from './encryption/encryption.interceptor';
 import { ReactiveFormsModule } from '@angular/forms';
 import { HomepageComponent } from './homepage/homepage.component';
 import * as moment from 'moment';
-
 @NgModule({
   declarations: [
     AppComponent,
@@ -29,6 +29,7 @@ import * as moment from 'moment';
   providers: [
     ChatappService,
     { provide: HTTP_INTERCEPTORS, useClass: AuthtokenInterceptor, multi: true },
+    { provide: HTTP_INTERCEPTORS, useClass: EncryptionInterceptor, multi: true },
     { provide: 'moment', useValue: moment }
   ],
   bootstrap: [AppComponent]
